@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "outDir": "./dist/",
+        "sourceMap": true,
+        "allowSyntheticDefaultImports": true,
+        "target": "es6",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "baseUrl": "./dist",
+        "incremental": true,
+        "strict": true,
+        "typeRoots": [
+            "node_modules/@types",
+            "src/types"
+        ],
+        "lib": [
+            "ES2021.String"
+        ],
+        "skipLibCheck": true
+    },
+    "include": [
+        "src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "tests"
+    ]
+}

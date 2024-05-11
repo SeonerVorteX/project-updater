@@ -1,0 +1,48 @@
+{
+  "name": "project-updater",
+  "version": "1.0.2",
+  "description": "Project Updater",
+  "main": "dist",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "server": "cls && ts-node tests/index.test.ts",
+    "client": "cls && ts-node tests/index.test2.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/SeonerVorteX/project-updater.git"
+  },
+  "funding": {
+    "type": "buymeacoffee",
+    "url": "https://buymeacoffee.com/seonervortex"
+  },
+  "keywords": [
+    "node",
+    "updater",
+    "typescript",
+    "project",
+    "update"
+  ],
+  "author": "Mehdi Safarzade <contact@mehdisafarzade.dev>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/SeonerVorteX/project-updater/issues/new"
+  },
+  "homepage": "https://github.com/SeonerVorteX/project-updater#readme",
+  "dependencies": {
+    "@discordjs/collection": "^1.5.2",
+    "chalk": "^4.1.2",
+    "path": "^0.12.7",
+    "socket.io": "^4.7.2",
+    "jetty": "^0.2.1",
+    "socket.io-client": "^4.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.8",
+    "types-package-json": "^2.0.39"
+  },
+  "engines": {
+    "node": ">=16.20.1"
+  }
+}
