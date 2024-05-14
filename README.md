@@ -57,7 +57,9 @@ root/
     └── package.json
 ```
 
-> **Note:** The `package.json` file in the root directory is the main package file, and the `package.json` file in the `my-project` directory is the project package file and must exist.
+> **Note:** The `package.json` file in the root directory is the main package file, and the `package.json` file in the `your-project-path` directory is the project package file and must exist.
+
+> **Important:** When you update your project, you also need to increase the version number in the `package.json` file in the `your-project-path` directory
 
 <hr>
 
