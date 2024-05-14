@@ -1,5 +1,4 @@
-import { BaseException } from "./BaseError";
-import chalk from "chalk";
+import { BaseException } from "./BaseException";
 
 /**
  * @type {ServerException}
@@ -13,11 +12,11 @@ export class ServerException extends BaseException {
     public readonly name: string;
 
     /**
-     * @param {string} message 
+     * @param {string} message
      * @constructor
      */
     constructor(message: string) {
         super(message);
-        this.name = "ServerException";
+        this.name = "ServerError";
     }
 }

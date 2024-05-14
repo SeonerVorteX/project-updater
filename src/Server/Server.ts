@@ -8,18 +8,20 @@ import { BaseEvent } from "./Events/BaseEvent";
 import chalk from "chalk";
 import { existsSync, lstatSync, mkdir, readFileSync, readdirSync } from "fs";
 import { join, sep } from "path";
+import { ServerException } from "../Errors/ServerException";
+import { DefaultServerOptions, HeartbeatInterval } from "../Utils/Defaults";
 
 /**
  * @example
  * import { Server } from "project-updater";
- * import packageJson from "./project/package.json";
+ * import packageJson from "./your-project-path/package.json";
  *
  * const server = new Server({
  *     package: packageJson,
- *     port: 8080,
+ *     port: 5000,
  *     key: "your-super-secret-key",
  *     path: "/your-project-path/",
- *     ignore: ["node_modules", "logs", "package-lock.json"],
+ *     ignore: ["node_modules", "package-lock.json"],
  * });
  *
  * server.start();
@@ -73,19 +75,14 @@ export class Server {
 
     /**
      * @param {ServerConfigurations} configurations Server configurations
-     * @param {string} [configurations.key] Server authentication key
-     * @param {string} [configurations.host] Server host slug
-     * @param {number} [configurations.port] Server port (default 8080)
-     * @param {PackageJson} [configurations.package] Package file
-     * @param {string[]} [configurations.ignore] Ignored files and directories
-     * @param {Command[]} [configurations.commands] Shell commands to execute
-     * @param {Package[]} [configurations.packages] NPM packages to install
      */
     constructor(configurations: ServerConfigurations) {
-        configurations = {
-            ignore: ["node_modules", "package-lock.json"],
-            ...configurations,
-        };
+        if (!configurations) throw new ServerException("configurations is required");
+        if (!configurations.path) throw new ServerException("configurations.path is required");
+        if (!configurations.package) throw new ServerException("configurations.package is required");
+        if (!configurations.package.version) throw new ServerException("Invalid package.json file provided");
+
+        Object.assign(configurations, DefaultServerOptions, configurations);
 
         this.io = new SocketServer({ serveClient: false });
 
@@ -94,7 +91,7 @@ export class Server {
         this.projectPath = process.cwd() + sep + configurations.path;
 
         if (!existsSync(this.projectPath)) {
-            mkdir(this.projectPath, (err) => {});
+            mkdir(this.projectPath, (_) => {});
         }
 
         this.clients = new Collection<string, SocketClient>();
@@ -103,7 +100,7 @@ export class Server {
 
         this.logger = new ServerLogger("[Updater-Server]", this);
 
-        this.heartbeat_interval = 10000;
+        this.heartbeat_interval = HeartbeatInterval;
 
         this.loadEvents();
 
@@ -124,7 +121,7 @@ export class Server {
     }
 
     /**
-     * Starts the server
+     * Start the server
      * @public
      */
     public start(): void {
@@ -133,12 +130,6 @@ export class Server {
         this.logger.info(`Project Version: ${this._configs.package.version}`);
     }
 
-    /**
-     * Unauthorizes the client
-     * @param {SocketClient} client
-     * @param {string} event
-     * @public
-     */
     public unAuthorize(client: SocketClient, event: string): void {
         client.send(
             {
@@ -150,10 +141,6 @@ export class Server {
         client.disconnect();
     }
 
-    /**
-     * Loads server events
-     * @public
-     */
     public loadEvents(): void {
         Object.values(IOHandlers).forEach((h) => {
             let handler: BaseEvent = new h(this);

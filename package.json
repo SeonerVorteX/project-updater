@@ -1,7 +1,7 @@
 {
   "name": "project-updater",
-  "version": "1.0.2",
-  "description": "Project Updater",
+  "version": "1.0.3",
+  "description": "Project Updater is a simple and easy-to-use library that allows you to update your project without any hassle.",
   "main": "dist",
   "types": "types/index.d.ts",
   "scripts": {
@@ -43,6 +43,6 @@
     "types-package-json": "^2.0.39"
   },
   "engines": {
-    "node": ">=16.20.1"
+    "node": ">=16.0.0"
   }
 }

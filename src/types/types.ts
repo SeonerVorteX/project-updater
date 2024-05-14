@@ -1,11 +1,9 @@
-import { Socket } from "socket.io";
-import { Handshake } from "socket.io/dist/socket";
 import { PackageJson as PackageType } from "types-package-json";
 
 export interface ServerConfigurations {
     key?: string;
     path: string;
-    port: number | 8080;
+    port?: number;
     package: PackageJson;
     ignore?: string[];
     commands?: Command[];
@@ -24,7 +22,7 @@ export interface ClientConfigurations {
     reconnectionDelayMax?: number;
     reconnectionAttempts?: number;
     ignore?: string[];
-    startScript?: string;
+    // startScript: string;
 }
 
 export interface PackageJson extends Omit<PackageType, "keywords" | "repository"> {

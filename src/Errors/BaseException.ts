@@ -1,5 +1,3 @@
-import chalk from "chalk";
-
 /**
  * @type {BaseException}
  */
@@ -12,13 +10,11 @@ export class BaseException extends Error {
     public readonly name: string;
 
     /**
-     * @param {string} message 
+     * @param {string} message
      * @constructor
      */
     constructor(message: string) {
-        super(
-            chalk.red(message),
-        )
-        this.name = "UpdaterException";
+        super(message);
+        this.name = "UpdaterError";
     }
 }

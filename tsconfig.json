@@ -2,7 +2,6 @@
     "compilerOptions": {
         "module": "commonjs",
         "outDir": "./dist/",
-        "sourceMap": true,
         "allowSyntheticDefaultImports": true,
         "target": "es6",
         "moduleResolution": "node",
@@ -15,16 +14,11 @@
             "node_modules/@types",
             "src/types"
         ],
-        "lib": [
-            "ES2021.String"
-        ],
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "lib": ["ES2021"]  
     },
-    "include": [
-        "src/**/*.ts"
-    ],
     "exclude": [
         "node_modules",
-        "tests"
+        "tests/"
     ]
 }

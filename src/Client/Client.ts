@@ -10,6 +10,7 @@ import {
     ProjectStatus,
     SocketOptions,
 } from "../types/types";
+import { DefaultClientOptions } from "../Utils/Defaults";
 import { ClientLogger } from "./ClientLogger";
 import { io, Socket } from "socket.io-client";
 import * as SocketHandlers from "./Events/socket/index";
@@ -35,19 +36,18 @@ import { ProgressBar } from "../Utils/ProgressBar";
 import { EventEmitter } from "events";
 import { spawn } from "child_process";
 import chalk from "chalk";
+import { ClientException } from "../Errors/ClientException";
 const Jetty = require("jetty");
 
 /**
  * @example
- * import { Client } from "../src/Client/Client";
+ * import { Client } from "project-updater";
  *
  * const client = new Client("start", {
- *     host: "http://localhost:8080",
+ *     host: "http://localhost:5000",
  *     auth: { key: "your-super-secret-key" },
- *     projectDir: "/project-directory/",
+ *     projectDir: "./your-project-path/",
  *     reconnectionDelayMax: 5000,
- *     ignore: ["node_modules", "package-lock.json"],
- *     reconnectionAttempts: 15,
  *     autoConnect: false,
  * });
  *
@@ -88,7 +88,7 @@ export class Client extends EventEmitter {
      * @type {ClientConfigurations}
      * @private
      */
-    private options: ClientConfigurations;
+    private options: ClientConfigurations & { startScript: string };
 
     /**
      * Project Path
@@ -185,39 +185,29 @@ export class Client extends EventEmitter {
     public heartbeatInterval?: NodeJS.Timeout;
 
     /**
-     * @param {string} host Server host
-     * @param {ClientConfigurations} options Client options
+     * @param {string} startScript The npm script that will run after the project is updated.
+     * @param {ClientConfigurations} options Client configurations
      */
-    constructor(startScript: string = "start", options: ClientConfigurations) {
+    constructor(startScript: string = "", options: ClientConfigurations) {
         super();
+
+        if (!startScript) throw new ClientException("startScript is required");
+        if (!options) throw new ClientException("options is required");
+        if (!options.host) throw new ClientException("options.host is required");
+
+        Object.assign(options, DefaultClientOptions, options, { startScript });
 
         this.ready = false;
         this.socketReady = false;
-
         this.reconnecting = false;
         this.updated = false;
-
         this.jetty = new Jetty(process.stdout);
-
-        this.options = {
-            startScript,
-            ignore: ["node_modules", "package-lock.json"],
-            reconnectionDelayMax: 10000,
-            reconnectionAttempts: 10,
-            autoConnect: true,
-            autoUpdate: true,
-            autoStart: true,
-            autoRestart: true,
-            ...options,
-        };
-
+        this.options = options as ClientConfigurations & { startScript: string };
         this.projectPath = resolvePath(process.cwd() + sep + "project");
-
         this.projectStatus = 0;
 
         if (options?.projectDir) {
-            let dir = options.projectDir;
-            this.projectPath = resolvePath(process.cwd() + sep + dir);
+            this.projectPath = resolvePath(process.cwd() + sep + options.projectDir);
         }
 
         this.packageJsonPath = join(this.projectPath, "package.json");
@@ -227,7 +217,9 @@ export class Client extends EventEmitter {
         }
 
         if (!existsSync(this.projectPath)) {
-            mkdir(this.projectPath, (_) => {});
+            mkdir(this.projectPath, (_) => {
+                console.error(_);
+            });
         }
 
         if (existsSync(this.packageJsonPath)) {
@@ -239,7 +231,6 @@ export class Client extends EventEmitter {
         this.socket = io(host, this.options);
 
         this.id = this.socket.id;
-
         this.logger = new ClientLogger("[Updater-Client]", this);
 
         this.socket.once("connect", () => {
@@ -364,6 +355,7 @@ export class Client extends EventEmitter {
     }
 
     public async startProject(): Promise<void> {
+        // TODO: Disconnect socket when project is started
         const { autoUpdate, autoStart } = this.options;
 
         if (this.ready) {
@@ -725,6 +717,7 @@ export class Client extends EventEmitter {
                                     console.log("\n\n");
                                     this.logger.info(`Project updated to version ${version}`);
                                     this.logger.info(
+                                        // FIXME: Removed files length
                                         `${addedFiles.length} file added, ${removedFiles.length} file removed, ${updatedFiles.length} file updated` +
                                             (ignoredFiles.length ? `, ${ignoredFiles.length} file ignored` : "")
                                     );
@@ -753,7 +746,9 @@ export class Client extends EventEmitter {
                 path: join(path, file).replace(this.projectPath + "\\", ""),
                 dir: true,
             });
-            readdirSync(join(path, file)).forEach((f) => this.stat(join(path, file) + "/", f, arr));
+            readdirSync(join(path, file))
+                // TODO: .filter((file) => !this.options.ignore?.includes(file))
+                .forEach((f) => this.stat(join(path, file) + "/", f, arr));
         } else if (lstatSync(join(path, file).replace("/", "")).isFile()) {
             const content = readFileSync(join(path, file), { flag: "r", encoding: "utf-8" });
             arr.push({
@@ -768,6 +763,7 @@ export class Client extends EventEmitter {
     private async handlePackages(packages: NPMPackage[]): Promise<void> {
         if (packages && packages.length) {
             this.logger.info(`Installing packages...\n`);
+            // TODO: if packages.length > 1 => download all packages at once
             for (let pkg of packages) {
                 await new Promise<void>((resolve, reject) => {
                     let pkgName = pkg.name;
@@ -775,7 +771,7 @@ export class Client extends EventEmitter {
                     let isDev = pkg.dev;
                     let operationType = pkg.type || "install";
 
-                    this.logger.info(`Installing ${pkgName}...`);
+                    this.logger.info(`Installing ${pkgName}...\n`);
                     try {
                         let child = spawn(
                             /^win/.test(process.platform) ? "npm.cmd" : "npm",
@@ -820,7 +816,7 @@ export class Client extends EventEmitter {
                     let prefix = cmd.prefix;
                     let args = cmd.args || [];
 
-                    this.logger.info(`Running command: ${prefix} ${args.join(" ")}`);
+                    this.logger.info(`Running command: ${prefix} ${args.join(" ")}\n`);
                     try {
                         let child = spawn(prefix, args, {
                             cwd: this.projectPath,
@@ -828,11 +824,11 @@ export class Client extends EventEmitter {
                         });
 
                         child.stdout.on("data", (data) => {
-                            this.logger.info(data.toString());
+                            console.log(data.toString());
                         });
 
                         child.stderr.on("data", (data) => {
-                            this.logger.error(data.toString());
+                            console.log(data.toString());
                         });
 
                         child.on("close", (code) => {

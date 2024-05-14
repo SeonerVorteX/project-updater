@@ -5,32 +5,35 @@ import { Socket } from "socket.io";
 
 declare module "project-updater" {
     interface ServerConfigurations {
-        /** Server key for authentication */
+        /** The secret key to protect your project. */
         key?: string;
 
-        /** Project path */
+        /** The path to your project directory.  */
         path: string;
 
-        /** Port to listen */
-        port: number | 8080;
+        /**
+         * The port to listen on.
+         * @default 8080
+         */
+        port?: number;
 
-        /** Package.json  */
+        /** The project package.json file.  */
         package: PackageJson;
 
         /**
-         * Ignored files
+         * The files and directories that will be ignored when updating the project.
          * @default ["node_modules","package-lock.json"]
          */
         ignore?: string[];
 
         /**
-         * Commands to execute in client side
+         *  The commands that will run on the client side after the client updates the project.
          * @example [{ prefix: "npm", args: ["install"] }]
          */
         commands?: Command[];
 
         /**
-         * NPM packages to install in client side
+         * The npm packages that will be installed on the client side after the client updates the project.
          * @example [{ type: "install", name: "express", version: "latest" }]
          */
         packages?: NPMPackage[];
@@ -38,8 +41,8 @@ declare module "project-updater" {
 
     interface ClientConfigurations {
         /**
-         * Host to connect
-         * @example "ws://localhost:5000"
+         * The host server URL.
+         * @example "http://localhost:8080"
          */
         host: string;
 
@@ -47,64 +50,58 @@ declare module "project-updater" {
         auth?: AuthOptions;
 
         /**
-         * Project directory
+         * The project directory
          * @default "/project"
          */
         projectDir?: string;
 
         /**
-         * Should we auto update the project?
+         * Should we automatically update the project when a new version is available?
          * @default true
          */
         autoUpdate?: boolean;
 
         /**
-         * Should we auto connect to server?
+         * Should we automatically connect to the host server?
          * @default true
          */
         autoConnect?: boolean;
 
         /**
-         * Should we auto start the project?
+         * Should we automatically start the project after updating?
          * @default true
          */
         autoStart?: boolean;
 
         /**
-         * Should we auto restart the project?
+         * Should we automatically restart the project when it crashes?
          * @default true
          */
         autoRestart?: boolean;
 
         /**
-         * Path of package.json
+         * The path to the project package.json file.
          * @default "/package.json"
          */
         packageJsonPath?: string;
 
         /**
-         * Max delay between reconnection attempts
+         * The maximum reconnection delay between reconnection attempts in milliseconds.
          * @default 10000
          */
         reconnectionDelayMax?: number;
 
         /**
-         * Max number of reconnection attempts
+         * The maximum reconnection attempts.
          * @default 10
          */
         reconnectionAttempts?: number;
 
         /**
-         * Ignored files
-         * @default ["node_modules", "package-lock.json"]
+         * The files that will be ignored when updating the project (Only files can be ignored for now, not directories).
+         * @default ["package-lock.json"]
          */
         ignore?: string[];
-
-        /**
-         * Start script for the project
-         * @default "start" => "npm start"
-         */
-        startScript?: string;
     }
 
     interface PackageJson extends Omit<PackageJsonFile, "keywords" | "repository"> {
@@ -151,7 +148,7 @@ declare module "project-updater" {
     }
 
     interface AuthOptions {
-        /** Authentication key */
+        /** The secret key to connect to the host server. */
         key?: string;
     }
 

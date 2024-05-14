@@ -30,7 +30,7 @@ declare module "project-updater" {
     export class Client {
         private jetty: typeof Jetty;
         private host: string;
-        private options: ClientConfigurations;
+        private options: ClientConfigurations & { startScript: string };
         private projectStatus: number;
         private readonly packageJsonPath: string;
         public ready: boolean;
@@ -55,7 +55,7 @@ declare module "project-updater" {
         public connect(): Promise<Client>;
         public loadEvents(): void;
         public send(data: any, options: SocketOptions, callback?: (...args: any) => any | void): void;
-        public heartbeat(interval: number | 60000): void;
+        public heartbeat(interval: number): void;
         private wait(ms: number): Promise<void>;
 
         /** Start the project */
