@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.3](https://github.com/SeonerVorteX/project-updater/compare/1.0.2...1.0.3) (2024-05-15)
+## [1.0.3](https://github.com/SeonerVorteX/project-updater/compare/v1.0.2...v1.0.3) (2024-05-15)
 
 -   Added new changes
 
